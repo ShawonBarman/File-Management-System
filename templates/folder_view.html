@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Management App | {{folder.name}}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        *{
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+
+        body{
+            background-color: #fff;
+        }
+
+        .navbar-custom {
+            background-color: #fff;
+            border-bottom: 2px solid #e6e6ff;
+            padding: 10px 0;
+        }
+
+        .navbar-custom .navbar-brand {
+            color: #000;
+            font-weight: bolder;
+            font-size: 1.7rem;
+            transition: 0.3s all;
+        }
+
+        .navbar-custom .navbar-brand:hover{
+            color: #F86F03;
+        }
+
+        .navbar-custom .navbar-nav .nav-link {
+            color: #000;
+            font-weight: bolder;
+            font-size: 1.4rem;
+            transition: 0.3s all;
+        }
+
+        .navbar-custom .navbar-nav .nav-link:hover{
+            color: #F86F03;
+        }
+
+        .navbar-custom .navbar-nav input{
+            width: 400px;
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #f8f9fa;
+            outline: 0;
+        }
+
+        .banner{
+            width: 100%;
+            height: 10vh;
+        }
+
+        footer{
+            background-color: #fff;
+            height: 10vh;
+            border-top: 2px solid #e6e6ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        footer p{
+            padding: 0;
+            margin: 0;
+            font-weight: bolder;
+            font-size: 1.2rem;
+        }
+
+        .main-content {
+            padding: 20px;
+            min-height: 80vh;
+        }
+
+        .main-content .sidebar {
+            background-color: #f0f0f0;
+        }
+
+        .main-content .sidebar h5 {
+            background-color: #F86F03;
+            padding: 15px;
+            color: #fff;
+            border-top: 2px solid #fff;
+            font-size: 1.8rem;
+            font-weight: bolder;
+            text-align: center;
+            margin: 0;
+        }
+
+        .main-content .sidebar ul li {
+            list-style-type: none;
+            background-color: #333;
+            color: #fff !important;
+            border-top: 2px solid #fff;
+            transition: 0.4s all;
+        }
+
+        .main-content .sidebar ul li .btn {
+            color: #fff !important;
+            font-size: 1.2rem;
+            font-weight: bolder;
+            border: none !important;
+            width: 100%;
+            height: 100%;
+            padding: 15px;
+            text-align: left;
+        }
+
+        .main-content .sidebar ul li i{
+            margin-right: 10px;
+        }
+
+        .main-content .sidebar ul li:hover{
+            /*background-color: #000;*/
+            background-color: #F86F00;
+            color: #fff;
+        }
+
+        .main-content .dashboard {
+            padding: 0 20px;
+        }
+
+        .main-content .dashboard h5{
+            background-color: #F86F03;
+            color: #fff;
+            font-weight: bolder;
+            font-size: 1.8rem;
+            text-align: center;
+            padding: 15px;
+        }
+
+        .main-content .dashboard h6{
+            color: #F86F03;
+            font-weight: bolder;
+            font-size: 1.4rem;
+            margin: 15px 0;
+        }
+
+        /* Style for folder item */
+        .folder-item, .file-item {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .folder-item:hover, .file-item:hover {
+            background-color: #e0e0e0;
+        }
+
+        .folder-item i, .file-item i {
+            font-size: 2.2rem;
+            color: #F86F03;
+        }
+
+        .folder-item .folder-name, .file-item .file-name {
+            font-size: 16px;
+            padding: 0;
+            margin: 0;
+            margin-top: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Additional styles for message div */
+        .message-container {
+            width: 300px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 5px;
+            color: #fff;
+            z-index: 1000;
+            display: none;
+        }
+
+        .close-btn {
+            cursor: pointer;
+            color: #fff;
+            font-size: 50px;
+            position: absolute;
+            top:-14px;
+            left: 260px;
+        }
+
+        #message{
+            margin-top: 40px;
+        }
+
+        .active-item {
+            background-color: #c0c0c0 !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-md navbar-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'home' %}">FileManagementApp</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="collapsibleNavbar">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <input type="text" id="searchInput" class="form-control mr-sm-2" placeholder="Search" aria-label="Search">
+                    </li>
+                </ul>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid main-content">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-2">
+                <div class="sidebar">
+                    <h5>Options</h5>
+                    <ul>
+                        <li><button class="btn" data-toggle="modal" data-target="#createFolderModal"><i class="fas fa-folder-plus"></i> Create Folder</button></li>
+                        <li><button class="btn" data-toggle="modal" data-target="#uploadFileModal"><i class="fas fa-upload"></i> Upload File</button></li>
+                        <li><button class="btn" id="renameBtn"><i class="fas fa-edit"></i> Rename</button></li>
+                        <li><button class="btn" id="deleteBtn"><i class="fas fa-trash-alt"></i> Delete</button></li>
+                        <li><button class="btn" id="downloadBtn"><i class="fas fa-download"></i> Download</button></li>
+                        <li><button class="btn" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button></li>
+                        <li><button class="btn" id="shareBtn"><i class="fas fa-share-alt"></i> Share With Me</button></li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Dashboard -->
+            <div class="col-10">
+                <div class="dashboard">
+                        <h5>Dashboard for {{folder.name}} folder</h5>
+                        <h6>
+                            {% for folder_tuple in folder_path %}
+                                <a href="{% url 'open_folder' folder_tuple.0 folder_tuple.1 %}" style="color: #F86F03;">
+                                    {{ folder_tuple.0 }}
+                                </a>
+                                {% if not forloop.last %} -> {% endif %}
+                            {% endfor %}
+                        </h6>
+
+                        <div class="folders">
+                            {% if sub_folders %}
+                            <h6>Sub Folders</h6>
+                            <div class="row">
+                                {% for folder in sub_folders %}
+                                <div class="col-md-3 col-4 mb-3">
+                                    <div class="folder-item" data-id="{{ folder.id }}">
+                                        <i class="fas fa-folder"></i>
+                                        <p class="folder-name">{{ folder.name }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="files">
+                            {% if files %}
+                            <h6>Files</h6>
+                            <div class="row">
+                                {% for file in files %}
+                                <div class="col-md-3 col-4 mb-3">
+                                    <div class="file-item" data-id="{{ file.id }}">
+                                        <i class="fas fa-file"></i>
+                                        <p class="file-name">{{ file.name }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Folder Modal -->
+    <div class="modal fade" id="createFolderModal" tabindex="-1" role="dialog" aria-labelledby="createFolderModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createFolderModalLabel">Create Folder</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="createFolderForm" method="POST" action="{% url 'create_folder' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="folder_name">Folder Name</label>
+                            <input type="text" class="form-control" id="folder_name" name="folder_name" required>
+                        </div>
+                        <input type="hidden" name="parent_id" id="parent_id" value="{{ folder.id }}">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Create</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload File Modal -->
+    <div class="modal fade" id="uploadFileModal" tabindex="-1" role="dialog" aria-labelledby="uploadFileModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadFileModalLabel">Upload File</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="uploadFileForm" method="POST" action="{% url 'upload_file' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="file">Choose File</label>
+                            <input type="file" class="form-control-file" id="file" name="file" required>
+                        </div>
+                        <input type="hidden" name="parent_folder_id" value="{{ folder.id }}">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rename Modal -->
+    <div class="modal fade" id="renameModal" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="renameModalLabel">Rename Item</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="renameForm" method="POST" action="{% url 'rename_item' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="new_name">New Name</label>
+                            <input type="text" class="form-control" id="new_name" name="new_name" value="">
+                        </div>
+                        <input type="hidden" name="item_type" id="item_type" value="">
+                        <input type="hidden" name="item_id" id="item_id" value="">
+                        <input type="hidden" name="parent_folder_id" id="parent_folder_id_for_rename" value="{{ folder.id }}">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Rename</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Delete Item</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="deleteForm" method="POST" action="{% url 'delete_item' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete?</p>
+                        <input type="hidden" name="item_name" id="item_name_for_delete" value="">
+                        <input type="hidden" name="item_type" id="item_type_for_delete" value="">
+                        <input type="hidden" name="item_id" id="item_id_for_delete" value="">
+                        <input type="hidden" name="parent_folder_id" id="parent_folder_id_for_rename" value="{{ folder.id }}">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message div -->
+    {% if messages %}
+    <div class="message-container" id="message-container">
+        <span class="close-btn" id="close-btn">&times;</span>
+        {% for message in messages %}
+        <p id="message">{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <footer>
+        <p>&copy; 2024 FileManagementApp. All rights reserved.</p>
+    </footer>
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/64d58efce2.js" crossorigin="anonymous"></script>
+
+    <script>
+        function showMessage() {
+            const messageContainer = document.getElementById('message-container');
+            if (messageContainer) {
+                messageContainer.style.display = 'block';
+
+                // Hide after 3 seconds if not closed manually
+                setTimeout(() => {
+                    messageContainer.style.display = 'none';
+                }, 2000);
+            }
+        }
+        // Call showMessage function when page loads
+        showMessage();
+
+        function searchItems() {
+            var searchText = document.getElementById('searchInput').value;
+            // Make an AJAX request to the server to fetch filtered folders and files
+            $.ajax({
+                url: '{% url "search_items" %}',
+                method: 'GET',
+                data: {
+                    'search_text': searchText,
+                },
+                success: function(data) {
+                    // Clear existing folders and files from the UI
+                    $('.folders .row').empty();
+                    $('.files .row').empty();
+                    // Append the filtered folders to the UI
+                    data.sub_folders.forEach(function(folder) {
+                        $('.folders .row').append('<div class="col-md-3 col-4 mb-3"><div class="folder-item" data-id="' + folder.id + '"><i class="fas fa-folder"></i><p class="folder-name">' + folder.name + '</p></div></div>');
+                    });
+                    // Append the filtered files to the UI
+                    data.files.forEach(function(file) {
+                        $('.files .row').append('<div class="col-md-3 col-4 mb-3"><div class="file-item" data-id="' + file.id + '"><i class="fas fa-file"></i><p class="file-name">' + file.name + '</p></div></div>');
+                    });
+                },
+                error: function(error) {
+                    console.log('Error:', error);
+                }
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', searchItems);
+
+        document.addEventListener("DOMContentLoaded", function () {
+            let selectedItemType;
+            let selectedItemId;
+            let selectedItemName;
+
+            function selectItem() {
+                const currentItem = this;
+                const isActive = currentItem.classList.contains('active-item');
+
+                document.querySelectorAll('.folder-item, .file-item').forEach(item => {
+                    item.classList.remove('active-item');
+                });
+
+                if (!isActive) {
+                    currentItem.classList.add('active-item');
+                } else {
+                    selectedItemType = null;
+                    selectedItemId = null;
+                    selectedItemName = null;
+                }
+
+                selectedItemType = currentItem.classList.contains('folder-item') ? 'folder' : 'file';
+                selectedItemId = currentItem.getAttribute('data-id');
+                selectedItemName = currentItem.querySelector('.folder-name, .file-name').textContent.trim();
+                console.log(selectedItemType);
+                console.log(selectedItemId);
+                console.log(selectedItemName);
+            }
+
+            function openFolder() {
+                const folderItem = this;
+                const folderId = folderItem.getAttribute('data-id');
+                const folderName = folderItem.querySelector('.folder-name').textContent.trim();
+                window.location.href = '/' + folderName + '/' + folderId;
+            }
+        
+            document.querySelectorAll('.folder-item').forEach(item => {
+                item.addEventListener('dblclick', openFolder);
+            });
+
+            document.querySelectorAll('.folder-item, .file-item').forEach(item => {
+                item.addEventListener('click', selectItem);
+            });
+
+            function renameItem() {
+                const selectedItem = document.querySelector('.active-item');
+                if (selectedItem) {
+                    const itemId = selectedItem.getAttribute('data-id');
+                    const itemType = selectedItem.classList.contains('folder-item') ? 'folder' : 'file';
+                    const itemName = selectedItem.querySelector('.folder-name, .file-name').textContent.trim();
+            
+                    // Display modal with existing data
+                    $('#new_name').val(itemName);
+                    $('#item_type').val(itemType);
+                    $('#item_id').val(itemId);
+                    $('#renameModal').modal('show');
+                } else {
+                    console.log('No item selected.');
+                    alert("Please click a folder or file to select first.");
+                }
+            }
+
+            document.getElementById('renameBtn').addEventListener('click', renameItem);
+
+            function deleteItem() {
+                const selectedItem = document.querySelector('.active-item');
+                if (selectedItem) {
+                    const itemId = selectedItem.getAttribute('data-id');
+                    const itemType = selectedItem.classList.contains('folder-item') ? 'folder' : 'file';
+                    const itemName = selectedItem.querySelector('.folder-name, .file-name').textContent.trim();
+            
+                    // Display modal with existing data
+                    $('#item_name_for_delete').val(itemName);
+                    $('#item_type_for_delete').val(itemType);
+                    $('#item_id_for_delete').val(itemId);
+                    $('#deleteModal').modal('show');
+                } else {
+                    console.log('No item selected.');
+                    alert("Please click a folder or file to select first.");
+                }
+            }
+
+            document.getElementById('deleteBtn').addEventListener('click', deleteItem);
+
+            document.getElementById('downloadBtn').addEventListener('click', function () {
+                if (selectedItemType && selectedItemId) {
+                    const downloadUrl = `/download/${selectedItemType}/${selectedItemId}/`;
+                    window.location.href = downloadUrl;
+                } else {
+                    console.log('No item selected.');
+                    alert("Please click a folder or file to select first.");
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
