@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Management App</title>
+    <title>Share With me</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         *{
@@ -105,7 +105,7 @@
 
         .main-content .sidebar ul li .btn {
             color: #fff !important;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: bolder;
             border: none !important;
             width: 100%;
@@ -226,9 +226,6 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'logout' %}">Logout</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link ml-4" href="">Hello, {{request.user.username}}</a>
-                    </li>
                 </ul>
             </div>
         </div>
@@ -244,13 +241,8 @@
                 <div class="sidebar">
                     <h5>Options</h5>
                     <ul>
-                        <li><button class="btn" data-toggle="modal" data-target="#createFolderModal"><i class="fas fa-folder-plus"></i> Create Folder</button></li>
-                        <li><button class="btn" data-toggle="modal" data-target="#uploadFileModal"><i class="fas fa-upload"></i> Upload File</button></li>
-                        <li><button class="btn" id="renameBtn"><i class="fas fa-edit"></i> Rename</button></li>
-                        <li><button class="btn" id="deleteBtn"><i class="fas fa-trash-alt"></i> Delete</button></li>
                         <li><button class="btn" id="downloadBtn"><i class="fas fa-download"></i> Download</button></li>
                         <li><button class="btn" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button></li>
-                        <li><a href="{% url 'share_with_me' %}" class="btn"><i class="fas fa-share-alt"></i> Share With Me</a></li>
                     </ul>
                 </div>
             </div>
@@ -265,10 +257,10 @@
                         </div>
                     {% endif %}
                     <div class="folders">
-                        {% if folders %}
-                        <h6>Folders</h6>
+                        {% if shared_folders %}
+                        <h6>Shared Folders</h6>
                         <div class="row">
-                            {% for folder in folders %}
+                            {% for folder in shared_folders %}
                             <div class="col-md-3 col-4 mb-3">
                                 <div class="folder-item" data-id="{{ folder.id }}">
                                     <i class="fas fa-folder"></i>
@@ -280,10 +272,10 @@
                         {% endif %}
                     </div>
                     <div class="files">
-                        {% if files %}
-                        <h6>Files</h6>
+                        {% if shared_files %}
+                        <h6>Shared Files</h6>
                         <div class="row">
-                            {% for file in files %}
+                            {% for file in shared_files %}
                             <div class="col-md-3 col-4 mb-3">
                                 <div class="file-item" data-id="{{ file.id }}">
                                     <i class="fas fa-file"></i>
@@ -295,118 +287,6 @@
                         {% endif %}
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Create Folder Modal -->
-    <div class="modal fade" id="createFolderModal" tabindex="-1" role="dialog" aria-labelledby="createFolderModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createFolderModalLabel">Create Folder</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <form id="createFolderForm" method="POST" action="{% url 'create_folder' %}">
-                    {% csrf_token %}
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="folder_name">Folder Name</label>
-                            <input type="text" class="form-control" id="folder_name" name="folder_name" required>
-                        </div>
-                        <input type="hidden" name="parent_id" id="parent_id" value="">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Create</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Upload File Modal -->
-    <div class="modal fade" id="uploadFileModal" tabindex="-1" role="dialog" aria-labelledby="uploadFileModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="uploadFileModalLabel">Upload File</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <form id="uploadFileForm" method="POST" action="{% url 'upload_file' %}" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="file">Choose File</label>
-                            <input type="file" class="form-control-file" id="file" name="file" required>
-                        </div>
-                        <input type="hidden" name="parent_folder_id" id="upload_parent_folder_id" value="">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Upload</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Rename Modal -->
-    <div class="modal fade" id="renameModal" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="renameModalLabel">Rename Item</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <form id="renameForm" method="POST" action="{% url 'rename_item' %}">
-                    {% csrf_token %}
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="new_name">New Name</label>
-                            <input type="text" class="form-control" id="new_name" name="new_name" value="">
-                        </div>
-                        <input type="hidden" name="item_type" id="item_type" value="">
-                        <input type="hidden" name="item_id" id="item_id" value="">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Rename</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">Delete Item</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <form id="deleteForm" method="POST" action="{% url 'delete_item' %}">
-                    {% csrf_token %}
-                    <div class="modal-body">
-                        <p>Are you sure you want to delete?</p>
-                        <input type="hidden" name="item_name" id="item_name_for_delete" value="">
-                        <input type="hidden" name="item_type" id="item_type_for_delete" value="">
-                        <input type="hidden" name="item_id" id="item_id_for_delete" value="">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Delete</button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
@@ -462,14 +342,12 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/64d58efce2.js" crossorigin="anonymous"></script>
-
     <script>
         function showMessage() {
             const messageContainer = document.getElementById('message-container');
             if (messageContainer) {
                 messageContainer.style.display = 'block';
 
-                // Hide after 3 seconds if not closed manually
                 setTimeout(() => {
                     messageContainer.style.display = 'none';
                 }, 2000);
@@ -480,7 +358,6 @@
 
         function searchItems() {
             var searchText = document.getElementById('searchInput').value;
-            // Make an AJAX request to the server to fetch filtered folders and files
             $.ajax({
                 url: '{% url "search_items" %}',
                 method: 'GET',
@@ -488,21 +365,16 @@
                     'search_text': searchText,
                 },
                 success: function(data) {
-                    // Clear existing folders and files from the UI
                     $('.folders .row').empty();
                     $('.files .row').empty();
-                    // Append the filtered folders to the UI
+                    
                     data.sub_folders.forEach(function(folder) {
                         $('.folders .row').append('<div class="col-md-3 col-4 mb-3"><div class="folder-item" data-id="' + folder.id + '"><i class="fas fa-folder"></i><p class="folder-name">' + folder.name + '</p></div></div>');
                     });
-                    // Append the filtered files to the UI
+                    
                     data.files.forEach(function(file) {
                         $('.files .row').append('<div class="col-md-3 col-4 mb-3"><div class="file-item" data-id="' + file.id + '"><i class="fas fa-file"></i><p class="file-name">' + file.name + '</p></div></div>');
                     });
-
-                    //if ((data.sub_folders.length == 0) && (data.files.length == 0)){
-                        //location.reload()
-                    //}
                 },
                 error: function(error) {
                     console.log('Error:', error);
@@ -556,46 +428,6 @@
                 item.addEventListener('click', selectItem);
             });
 
-            function renameItem() {
-                const selectedItem = document.querySelector('.active-item');
-                if (selectedItem) {
-                    const itemId = selectedItem.getAttribute('data-id');
-                    const itemType = selectedItem.classList.contains('folder-item') ? 'folder' : 'file';
-                    const itemName = selectedItem.querySelector('.folder-name, .file-name').textContent.trim();
-            
-                    // Display modal with existing data
-                    $('#new_name').val(itemName);
-                    $('#item_type').val(itemType);
-                    $('#item_id').val(itemId);
-                    $('#renameModal').modal('show');
-                } else {
-                    console.log('No item selected.');
-                    alert("Please click a folder or file to select first.");
-                }
-            }
-
-            document.getElementById('renameBtn').addEventListener('click', renameItem);
-
-            function deleteItem() {
-                const selectedItem = document.querySelector('.active-item');
-                if (selectedItem) {
-                    const itemId = selectedItem.getAttribute('data-id');
-                    const itemType = selectedItem.classList.contains('folder-item') ? 'folder' : 'file';
-                    const itemName = selectedItem.querySelector('.folder-name, .file-name').textContent.trim();
-            
-                    // Display modal with existing data
-                    $('#item_name_for_delete').val(itemName);
-                    $('#item_type_for_delete').val(itemType);
-                    $('#item_id_for_delete').val(itemId);
-                    $('#deleteModal').modal('show');
-                } else {
-                    console.log('No item selected.');
-                    alert("Please click a folder or file to select first.");
-                }
-            }
-
-            document.getElementById('deleteBtn').addEventListener('click', deleteItem);
-
             document.getElementById('downloadBtn').addEventListener('click', function () {
                 if (selectedItemType && selectedItemId) {
                     const downloadUrl = `/download/${selectedItemType}/${selectedItemId}/`;
@@ -612,7 +444,6 @@
                     const itemId = selectedItem.getAttribute('data-id');
                     const itemType = selectedItem.classList.contains('folder-item') ? 'folder' : 'file';
             
-                    // Display modal with existing data
                     $('#sharedItemType').val(itemType);
                     $('#sharedItemId').val(itemId);
                     $('#shareModal').modal('show');

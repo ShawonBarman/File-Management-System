@@ -73,10 +73,10 @@ DATABASES = {
 #         'NAME': 'GoogleDriveCloneApp',
 #         'ENFORCE_SCHEMA': False,
 #         'CLIENT': {
-#             'host': 'mongodb+srv://googleDriveClone1:@googledrivecloneapp.gtfpm8n.mongodb.net/?retryWrites=true&w=majority&appName=GoogleDriveCloneApp',
-#             'username': '',
-#             'password': '',
-#             'authSource': '',
+#             'host': 'mongodb+srv://googleDriveClone1:O4ezu8zHLDAaAzIn@googledrivecloneapp.gtfpm8n.mongodb.net/?retryWrites=true&w=majority&appName=GoogleDriveCloneApp',
+#             'username': 'googleDriveClone1',
+#             'password': 'O4ezu8zHLDAaAzIn',
+#             'authSource': 'admin',
 #         }
 #     }
 # }

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Folder, File
+from .models import *
 from django.contrib import messages
 import os
 import zipfile
@@ -134,7 +134,7 @@ def delete_item(request):
 def download_item(request, item_type, item_id):
     try:
         if item_type == 'folder':
-            folder = get_object_or_404(Folder, id=item_id, owner=request.user)
+            folder = get_object_or_404(Folder, id=item_id)
             zip_filename = f'{folder.name}.zip'
             memory_zip = zipfile.ZipFile(os.path.join(settings.MEDIA_ROOT, zip_filename), 'w', zipfile.ZIP_DEFLATED)
             add_files_to_zip(memory_zip, folder, folder.name)
@@ -146,7 +146,7 @@ def download_item(request, item_type, item_id):
                 return response
 
         elif item_type == 'file':
-            file = get_object_or_404(File, id=item_id, owner=request.user)
+            file = get_object_or_404(File, id=item_id)
             zip_filename = f'{file.name}.zip'
             memory_zip = zipfile.ZipFile(os.path.join(settings.MEDIA_ROOT, zip_filename), 'w', zipfile.ZIP_DEFLATED)
             memory_zip.write(os.path.join(settings.MEDIA_ROOT, str(file.file)), arcname=file.name)
@@ -186,3 +186,48 @@ def search_items(request):
         sub_folders_data = [{'id': folder.id, 'name': folder.name} for folder in sub_folders]
         files_data = [{'id': file.id, 'name': file.name} for file in files]
         return JsonResponse({'sub_folders': sub_folders_data, 'files': files_data})
+    
+def share_item(request):
+    if request.method == 'POST':
+        recipient_username = request.POST.get('recipientUsername')
+        shared_item_id = request.POST.get('sharedItemId')
+        shared_item_type = request.POST.get('sharedItemType')
+        parent_folder_id = request.POST.get('parent_folder_id') or None
+        try:
+            recipient_user = User.objects.get(username=recipient_username)
+            if shared_item_type == 'folder':
+                folder = Folder.objects.get(id=shared_item_id)
+                if SharedFolder.objects.filter(user=recipient_user, folder=folder).exists():
+                    messages.success(request, f'The folder "{folder.name}" has already been shared with {recipient_username}.')
+                else:
+                    SharedFolder.objects.create(user=recipient_user, folder=folder, shared_by=request.user)
+                    messages.success(request, f'The folder "{folder.name}" has been successfully shared with {recipient_username}.')
+            elif shared_item_type == 'file':
+                file = File.objects.get(id=shared_item_id)
+                if SharedFile.objects.filter(user=recipient_user, file=file).exists():
+                    messages.success(request, f'The file "{file.name}" has already been shared with {recipient_username}.')
+                else:
+                    SharedFile.objects.create(user=recipient_user, file=file, shared_by=request.user)
+                    messages.success(request, f'The file "{file.name}" has been successfully shared with {recipient_username}.')
+            if parent_folder_id is not None:
+                folder = Folder.objects.get(id=parent_folder_id)
+                return redirect('open_folder', folder_name=folder.name, folder_id=folder.id)
+            else:
+                return redirect('home')
+        except:
+            messages.success(request, f'Sorry user not found. No one have this username in our system.')
+            if parent_folder_id is not None:
+                folder = Folder.objects.get(id=parent_folder_id)
+                return redirect('open_folder', folder_name=folder.name, folder_id=folder.id)
+            else:
+                return redirect('home')
+    else:
+        return redirect('home')
+    
+def share_with_me(request):
+    user = User.objects.get(username=request.user.username)
+    shared_folders = SharedFolder.objects.filter(user=user)
+    shared_files = SharedFile.objects.filter(user=user)
+    folders = [shared_folder.folder for shared_folder in shared_folders]
+    files = [shared_file.file for shared_file in shared_files]
+    return render(request, 'share_with_me.html', {'shared_folders': folders, 'shared_files': files})

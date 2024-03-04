@@ -105,7 +105,7 @@
 
         .main-content .sidebar ul li .btn {
             color: #fff !important;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bolder;
             border: none !important;
             width: 100%;
@@ -245,7 +245,7 @@
                         <li><button class="btn" id="deleteBtn"><i class="fas fa-trash-alt"></i> Delete</button></li>
                         <li><button class="btn" id="downloadBtn"><i class="fas fa-download"></i> Download</button></li>
                         <li><button class="btn" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button></li>
-                        <li><button class="btn" id="shareBtn"><i class="fas fa-share-alt"></i> Share With Me</button></li>
+                        <li><a href="{% url 'share_with_me' %}" class="btn"><i class="fas fa-share-alt"></i> Share With Me</a></li>
                     </ul>
                 </div>
             </div>
@@ -411,6 +411,36 @@
         </div>
     </div>
 
+    <!-- Share Modal -->
+    <div class="modal fade" id="shareModal" tabindex="-1" role="dialog" aria-labelledby="shareModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="shareModalLabel">Share Item</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form id="shareForm" method="POST" action="{% url 'share_item' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="recipientUsername">Recipient Username:</label>
+                  <input type="text" class="form-control" id="recipientUsername" name="recipientUsername">
+                </div>
+                <input type="hidden" id="sharedItemId" name="sharedItemId" value="">
+                <input type="hidden" id="sharedItemType" name="sharedItemType" value="">
+                <input type="hidden" name="parent_folder_id" id="parent_folder_id_for_rename" value="{{ folder.id }}">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Share</button>
+                  </div>
+              </form>
+            </div>
+          </div>
+        </div>
+    </div>
+
     <!-- Message div -->
     {% if messages %}
     <div class="message-container" id="message-container">
@@ -572,6 +602,24 @@
                     alert("Please click a folder or file to select first.");
                 }
             });
+
+            function shareItem() {
+                const selectedItem = document.querySelector('.active-item');
+                if (selectedItem) {
+                    const itemId = selectedItem.getAttribute('data-id');
+                    const itemType = selectedItem.classList.contains('folder-item') ? 'folder' : 'file';
+            
+                    // Display modal with existing data
+                    $('#sharedItemType').val(itemType);
+                    $('#sharedItemId').val(itemId);
+                    $('#shareModal').modal('show');
+                } else {
+                    console.log('No item selected.');
+                    alert("Please click a folder or file to select first.");
+                }
+            }
+
+            document.getElementById('shareBtn').addEventListener('click', shareItem);
         });
     </script>
 </body>

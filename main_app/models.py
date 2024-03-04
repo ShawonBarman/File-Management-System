@@ -17,3 +17,15 @@ class File(models.Model):
 
     def __str__(self):
         return self.name
+    
+class SharedFolder(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    folder = models.ForeignKey(Folder, on_delete=models.CASCADE)
+    shared_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shared_folders')
+    shared_at = models.DateTimeField(auto_now_add=True)
+    
+class SharedFile(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    file = models.ForeignKey(File, on_delete=models.CASCADE)
+    shared_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shared_files')
+    shared_at = models.DateTimeField(auto_now_add=True)
